@@ -5,6 +5,7 @@ import colors from "colors";
 import cors from "cors";
 import bodyParser from "body-parser";
 import connectDB from "./config/db.js";
+import authRoutes from "./routes/authRoute.js";
 
 dotenv.config();
 
@@ -17,9 +18,13 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan("dev"));
 
+// Routes
+app.use("/api/v1.auth", authRoutes);
+
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(
-    `------ ChatGPT clone is running at - ${PORT} -------`.bgYellow.gray.bold
+    `------ ChatGPT clone is running in ${process.env.DEV_MODE} at - ${PORT} -------`
+      .bgYellow.gray.bold
   );
 });
