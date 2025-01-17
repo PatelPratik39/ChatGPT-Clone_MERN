@@ -4,16 +4,25 @@ import NavBar from "./components/NavBar";
 import HomePage from "./pages/HomePage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import { useMemo } from "react";
+import { themeSettings } from "./theme";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
 
 function App() {
+  const theme = useMemo(() => createTheme(themeSettings(),[]));
+
   return (
     <>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <NavBar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </ThemeProvider>
     </>
   );
 }
