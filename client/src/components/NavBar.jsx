@@ -18,10 +18,10 @@ const NavBar = () => {
       <Typography variant="h1" color="primary" fontWeight="bold">
         AI GPT Clone
       </Typography>
-      <Link to="/register" p={1}>
+      <Link href="/register" p={1}>
         Sign up
       </Link>
-      <Link to="/login" p={1}>
+      <Link href="/login" p={1}>
         Login
       </Link>
     </Box>

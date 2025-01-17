@@ -1,13 +1,12 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import JWT from "jsonwebtoken";
-import cookie from "cookie";
+import jwt from "jsonwebtoken";
 
-// models
+// Define User Schema
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: [true, "Username is Required"]
+    required: [true, "Username is required"]
   },
   email: {
     type: String,
@@ -17,7 +16,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "Password is required"],
-    minlenght: [6, "Password length should be 6 character long"]
+    minlength: [6, "Password must be at least 6 characters long"]
   },
   customerId: {
     type: String,
@@ -29,45 +28,56 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// hash Password
+// Hash Password before saving
 userSchema.pre("save", async function (next) {
-  // update
   if (!this.isModified("password")) {
-    next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-// match password
-userSchema.methods.matchPassword = async function (password) {
-  return await bcrypt.compare(password, this.password);
+// Match Password
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Sign TOKEN
-
+// Sign Access Token and Refresh Token
 userSchema.methods.getSignedToken = function (res) {
+  // Validate secrets
+  if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
+    throw new Error(
+      "JWT secrets are not defined in the environment variables."
+    );
+  }
   // Access Token
-  const accessToken = JWT.sign(
+  const accessToken = jwt.sign(
     { id: this._id },
     process.env.JWT_ACCESS_SECRET,
-    { expiresIn: JWT_ACCESS_EXPIREIN }
+    { expiresIn: process.env.JWT_ACCESS_EXPIREIN || "15m" }
   );
 
-  //   Refresh Token
-  const refreshToken = JWT.sign(
+  // Refresh Token
+  const refreshToken = jwt.sign(
     { id: this._id },
-    process.env.JWT_REFRESH_TOKEN,
-    { expiresIn: JWT_REFRESH_EXPIREIN }
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: process.env.JWT_REFRESH_EXPIREIN || "7d" }
   );
-// cookie refresh token
-  res.cookie("refreshToken", `${refreshToken}`, {
-    maxAge: 86400 * 7000,
-    httpOnly: true
+
+  // Set Refresh Token in HTTP-Only Cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.DEV_MODE === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
+
+  // Return Access Token
+  return accessToken;
 };
 
+// Create and Export User Model
 const User = mongoose.model("User", userSchema);
 
 export default User;

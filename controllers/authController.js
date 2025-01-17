@@ -3,7 +3,7 @@ import userModel from "../models/userModel.js";
 import errorResponse from "../utils/errorResponse.js";
 
 export const sendToken = (user, statusCode, res) => {
-  const token = user.getSignedToken(res);
+  const token = user.getSignedToken();
   res.status(statusCode).json({
     success: true,
     token
@@ -12,16 +12,17 @@ export const sendToken = (user, statusCode, res) => {
 
 // Register Controller
 
-export const registerController = async (res, req, next) => {
+export const registerController = async (req, res, next) => {
+  // console.log(`Incoming request: ${req.method} ${req.url}`);
   try {
     const { username, email, password } = req.body;
 
     const existingEmail = await userModel.findOne({ email });
     if (existingEmail) {
-      return next(new errorResponse("Email is already register !!", 500));
+      return next(new errorResponse("Email is already register !!", 400));
     }
     const user = await userModel.create({ username, email, password });
-    sendToken(user, 202, res);
+    sendToken(user, 201, res);
   } catch (error) {
     console.log(error);
     next(error);
@@ -33,13 +34,21 @@ export const registerController = async (res, req, next) => {
 export const loginController = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password)
-      return next(new errorResponse("Please provide email or password !!"));
+    // Validate inputs
+    if (!email || !password) {
+      return next(new errorResponse("Please provide email and password!", 400));
+    }
+    // Find user by email
     const user = await userModel.findOne({ email });
-
-    if (!user) return next(new errorResponse("Invalid Credential ", 401));
-    const isMatch = await userModel.matchPassword(password);
-    if (!isMatch) return next(new errorHandler("Invalid Credentials", 401));
+    if (!user) {
+      return next(new errorResponse("Invalid Credentials", 401));
+    }
+    
+    // Check password match
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return next(new errorResponse("Invalid Credentials", 401));
+    }
 
     sendToken(user, 200, res);
   } catch (error) {

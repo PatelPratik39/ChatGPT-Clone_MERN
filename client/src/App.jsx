@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { themeSettings } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
+import toast, { Toaster } from "react-hot-toast";
 
 function App() {
   const theme = useMemo(() => createTheme(themeSettings(),[]));
@@ -17,6 +18,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <NavBar />
+        <Toaster/>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<Register />} />
