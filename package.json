@@ -7,7 +7,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon server.js",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "client": "npm start --prefix ./client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
     "bcryptjs": "^2.4.3",
     "chalk": "^5.4.1",
     "colors": "^1.4.0",
+    "concurrently": "^9.1.2",
     "cookie": "^1.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
